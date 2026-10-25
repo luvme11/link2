@@ -164,7 +164,7 @@ body.recording .ctrls .rec .btn{box-shadow:0 0 0 1.5px #e8483f,0 3px 10px rgba(2
 .avatar i[style*="url("]::after{content:"";position:absolute;inset:0;border-radius:50%;pointer-events:none;background:radial-gradient(circle at 30% 28%,rgba(255,255,255,.6),rgba(159,183,232,.28) 45%,rgba(58,79,128,.4)),linear-gradient(160deg,rgba(255,255,255,.25),transparent 50%)}
 .tape-photo{position:absolute;inset:0;display:none;background:center/cover no-repeat}
 .tape-bg.photo .tape-photo{display:block}
-.tape-bg.photo svg{display:none}
+.m-photo{position:absolute;inset:0;display:block;background:center/cover no-repeat}
 .pvt{width:96px;height:56px;flex:none;border-radius:8px;border:1px solid #cfdcf5;background:#e6efff center/cover}
 /* ===== 관리자 팝업 ===== */
 .adm-back{position:fixed;inset:0;z-index:50;display:flex;align-items:center;justify-content:center;background:rgba(40,60,100,.28);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);padding:14px}
@@ -402,7 +402,7 @@ CHANNELS.forEach((ch,i)=>{
   const m = document.createElement("button");
   m.className = "mini";
   m.style.setProperty("--a", ch.c1); m.style.setProperty("--b", ch.c2);
-  m.innerHTML = `<span class="m-bg">${miniSVG}</span><em>CH ${pad(i)}</em>`;
+  m.innerHTML = `<span class="m-bg">${ch.img?`<i class="m-photo" style="background-image:url('${ch.img}')"></i>`:""}${miniSVG}</span><em>CH ${pad(i)}</em>`;
   m.onclick = () => go(i);
   stack.appendChild(m);
 
@@ -427,7 +427,7 @@ function go(i, anim=true){
   $("#pill").textContent = ch.tag;
   $("#lbT").textContent = `CHANNEL ${pad(cur)} · ${ch.tag}`;
   $("#lbN").textContent = ch.name;
-  $("#lbThumb").innerHTML = miniSVG;
+  $("#lbThumb").innerHTML = (ch.img?`<i class="m-photo" style="background-image:url('${ch.img}')"></i>`:"") + miniSVG;
 
   [...stack.children].forEach((m,idx)=>{
     const pos = (idx - cur + N) % N;
@@ -513,6 +513,24 @@ function initYT(){const id=vid(SITE.music);if(!id)return;
  window.onYouTubeIframeAPIReady=()=>{yt=new YT.Player("ytp",{width:200,height:200,videoId:id,playerVars:{playsinline:1,controls:0,loop:1,playlist:id},
   events:{onReady:()=>{ytReady=true;yt.setVolume(volOf())},onStateChange:e=>setPlay(e.data===1||e.data===3)}})};
  const s=document.createElement("script");s.src="https://www.youtube.com/iframe_api";document.head.appendChild(s)}
+/* ===== 물방울 클릭 사운드 (파일 없이 WebAudio로 생성) ===== */
+let AC=null;
+function drop(){
+ if(SITE.clickSound===false)return;
+ try{
+  AC=AC||new (window.AudioContext||window.webkitAudioContext)();
+  if(AC.state==="suspended")AC.resume();
+  const t=AC.currentTime,o=AC.createOscillator(),g=AC.createGain();
+  o.type="sine";
+  o.frequency.setValueAtTime(400,t);
+  o.frequency.exponentialRampToValueAtTime(1050,t+.09);
+  g.gain.setValueAtTime(.0001,t);
+  g.gain.exponentialRampToValueAtTime(.04,t+.012);
+  g.gain.exponentialRampToValueAtTime(.0001,t+.16);
+  o.connect(g);g.connect(AC.destination);o.start(t);o.stop(t+.18);
+ }catch(_){}
+}
+document.addEventListener("click",e=>{if(e.target.closest("button,#pill"))drop()},true);
 /* STAY 알약 클릭 → 관리자 팝업 */
 $("#pill").style.cursor="pointer";$("#pill").title="관리자";
 const AK=localStorage,AS=sessionStorage,esc=v=>String(v??"").replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;");
@@ -543,7 +561,7 @@ $("#aSave").onclick=save;
  const P=$("#aPane");
  P.addEventListener("input",e=>{const el=e.target;
   if(el.dataset.g){gh[el.dataset.g]=el.type==="checkbox"?el.checked:el.value.trim();persist()}
-  else if(el.dataset.p){const[a,b]=el.dataset.p.split(".");draft[a][b]=el.value;if(el.dataset.p==="SITE.volume"){$("#vv").textContent=el.value;if(yt&&ytReady)yt.setVolume(+el.value)}}
+  else if(el.dataset.p){const[a,b]=el.dataset.p.split(".");draft[a][b]=el.type==="checkbox"?el.checked:el.value;if(el.dataset.p==="SITE.volume"){$("#vv").textContent=el.value;if(yt&&ytReady)yt.setVolume(+el.value)}}
   else if(el.dataset.k){draft.CHANNELS[+el.closest(".ach").dataset.i][el.dataset.k]=el.value}});
  P.addEventListener("click",e=>{const a=e.target.dataset.a;if(!a)return;const L=draft.CHANNELS;
   if(a==="test")return test();
@@ -577,7 +595,8 @@ function paint(){
  if(tab==="pf")h=`<h3>프로필</h3><p class="d">맨 위 프로필 카드에 보이는 정보예요.</p>${fld("이름","PROFILE.name",D.PROFILE.name)}${fld("핸들","PROFILE.handle",D.PROFILE.handle)}${fld("상단 탭 이름 (비우면 숨김)","SITE.tab1",D.SITE.tab1??"00 EVIDENCE")}<label>프로필 이미지</label><div class="arow" style="gap:14px;align-items:center"><div class="avatar" style="width:72px;height:72px"><i style="display:block;width:100%;height:100%;border-radius:50%;background:center/cover,radial-gradient(circle at 30% 30%,#fff,#9fb7e8 45%,#3a4f80);${pend||D.PROFILE.img?`background-image:url('${pend||D.PROFILE.img}')`:""}"></i></div>
  <div><input type="file" id="aFile" data-f="1" accept="image/*" hidden><button class="abtn" data-a="pick">이미지 첨부</button> <button class="abtn" data-a="imgdel">제거</button>
  <div class="d" style="margin:6px 0 0">정사각형으로 잘라 400px로 줄여서 저장 시 함께 올라가요.</div></div></div>`;
- if(tab==="st")h=`<h3>사이트 문구</h3><p class="d">브라우저 탭 제목, 레코더 위 탭 이름, 레코더 하단 문구, 맨 아래 CASE 문구예요.</p>${fld("브라우저 탭 제목","SITE.title",D.SITE.title)}${fld("레코더 탭 이름 (비우면 숨김)","SITE.tab2",D.SITE.tab2??"00 \u00a0VOICE RECORDER")}${fld("푸터 문구","SITE.footer",D.SITE.footer)}${fld("CASE 문구","SITE.caseNo",D.SITE.caseNo)}`;
+ if(tab==="st")h=`<h3>사이트 문구</h3><p class="d">브라우저 탭 제목, 레코더 위 탭 이름, 레코더 하단 문구, 맨 아래 CASE 문구예요.</p>${fld("브라우저 탭 제목","SITE.title",D.SITE.title)}${fld("레코더 탭 이름 (비우면 숨김)","SITE.tab2",D.SITE.tab2??"00 \u00a0VOICE RECORDER")}
+ <label class="chk"><input type="checkbox" data-p="SITE.clickSound" ${D.SITE.clickSound===false?"":"checked"}> 버튼 클릭 사운드 (물방울)</label>${fld("푸터 문구","SITE.footer",D.SITE.footer)}${fld("CASE 문구","SITE.caseNo",D.SITE.caseNo)}`;
  if(tab==="mu")h=`<h3>음악</h3><p class="d">유튜브 링크를 넣으면 레코더의 <b>PLAY</b> 버튼으로 재생돼요. STOP은 정지예요.</p>${fld("유튜브 링크","SITE.music",D.SITE.music||"")}
  <label>음량 <b id="vv">${D.SITE.volume??70}</b></label><input type="range" data-p="SITE.volume" min="0" max="100" value="${D.SITE.volume??70}" style="width:100%;accent-color:#6aa6ff">
  <p class="d" style="margin-top:10px">예) https://www.youtube.com/watch?v=… 또는 https://youtu.be/…<br>음량은 방문자 모두에게 이 값으로 시작해요. 고른 뒤 저장해야 반영돼요.<br>링크를 비우면 음악 없이 릴 애니메이션만 돌아요. 브라우저 자동재생 차단 때문에 방문자가 PLAY를 눌러야 시작돼요.</p>`;
@@ -585,7 +604,7 @@ function paint(){
  <div class="arow"><span class="num">${String(i+1).padStart(2,"0")}</span><input type="text" data-k="name" value="${esc(c.name)}" placeholder="링크바 이름">
  <button class="abtn sq" data-a="up">↑</button><button class="abtn sq" data-a="dn">↓</button><button class="abtn sq" data-a="rm">✕</button></div>
  <div class="arow" style="margin-top:10px;gap:12px"><div class="pvt" style="${thumbSrc(c)?`background-image:url('${thumbSrc(c)}')`:""}"></div><div><input type="file" data-cf="1" accept="image/*" hidden><button class="abtn" data-a="cpick">썸네일 첨부</button> <button class="abtn" data-a="cdel">제거</button>
- <div class="d" style="margin:6px 0 0">넣으면 레코더 화면에 카세트 대신 사진만 보여요.</div></div></div>
+ <div class="d" style="margin:6px 0 0">넣으면 레코더 화면 배경이 사진으로 바뀌고, 카세트 모양은 그 위에 그대로 보여요. 아래 작은 카세트와 링크바에도 같이 적용돼요.</div></div></div>
  <div class="ag2" style="margin-top:6px"><div><label>${c.lock?"잠금 중 · 새 비밀번호":"비밀번호 (비우면 잠금 없음)"}</label><input type="password" data-k="pw" autocomplete="new-password" value="${esc(c.pw||"")}" placeholder="${c.lock?"비우면 유지":""}"></div><div style="align-self:end">${c.lock?'<button class="abtn" data-a="unlock">잠금 해제</button>':""}</div></div>
  <div class="ag3"><div><label>알약 글자</label><input type="text" data-k="tag" value="${esc(c.tag)}"></div><div><label>라벨 글자</label><input type="text" data-k="label" value="${esc(c.label)}"></div><div><label>이동 URL</label><input type="text" data-k="url" value="${esc(c.url)}" placeholder="${c.lock?"잠겨 있어요 · 바꿀 때만 입력":""}"></div></div>
  <div class="ag2"><div><label>밝은 색</label><input type="color" data-k="c1" value="${esc(c.c1)}"></div><div><label>진한 색</label><input type="color" data-k="c2" value="${esc(c.c2)}"></div></div></div>`).join("")+`<button class="abtn" data-a="add">+ 채널 추가</button>`;
