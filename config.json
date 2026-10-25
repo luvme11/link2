@@ -1,7 +1,7 @@
 {
   "PROFILE": {
     "name": "ミ",
-    "handle": "개인 홈 모음zip...♡ 편하게 구경해 주세요",
+    "handle": "편하게 구경해 주세요",
     "img": "profile.jpg?v=1792950031261"
   },
   "SITE": {
@@ -13,7 +13,8 @@
     "volume": "3",
     "music": "https://youtu.be/9mApy5mvemE?si=cTvpOYjL7Ow1G9Sy",
     "favicon": "site-favicon.png?v=1792952348291",
-    "cursor": "site-cursor.png?v=1792952741526"
+    "cursor": "site-cursor.png?v=1792952741526",
+    "model": "ZIP...♡"
   },
   "CHANNELS": [
     {
