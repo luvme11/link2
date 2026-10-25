@@ -15,46 +15,64 @@
   },
   "CHANNELS": [
     {
-      "tag": "STAY",
+      "tag": "",
       "title": "COLD CASE",
       "sub": "BLUE HEART SIGNAL",
       "name": "LINK",
       "url": "https://luvme11.github.io/link/",
       "c1": "#cfdcf5",
       "c2": "#4a6aa8",
-      "label": "JUST",
+      "label": "",
       "tid": "qjliob",
       "img": "thumb-qjliob.jpg?v=1792950637695"
     },
     {
-      "tag": "CALL",
+      "tag": "",
       "title": "COLD CASE",
       "sub": "MIDNIGHT FREQUENCY",
-      "name": "ARCHIVE",
-      "url": "https://example.com/2",
+      "name": "LINK",
+      "url": "https://luvme11.github.io/oi/",
       "c1": "#d8f0ff",
       "c2": "#3f93c9",
-      "label": "ARCHIVE"
+      "label": "",
+      "tid": "4yysia",
+      "img": "thumb-4yysia.jpg?v=1792951293052"
     },
     {
-      "tag": "LOVE",
+      "tag": "",
       "title": "COLD CASE",
       "sub": "SOFT PINK STATIC",
-      "name": "FANWORKS",
-      "url": "https://example.com/3",
+      "name": "LINK",
+      "url": "https://luvme11.github.io/OOC/",
       "c1": "#f3dcf5",
       "c2": "#9a6bc7",
-      "label": "FANWORKS"
+      "label": "",
+      "tid": "si8jnj",
+      "img": "thumb-si8jnj.jpg?v=1792951294862"
     },
     {
-      "tag": "NOTE",
+      "tag": "",
       "title": "COLD CASE",
       "sub": "PAPER MOON TAPES",
-      "name": "NOTES",
-      "url": "https://example.com/4",
+      "name": "LINK",
+      "url": "https://luvme11.github.io/chanhee1/",
       "c1": "#d8f2ea",
       "c2": "#4b9a8e",
-      "label": "NOTES"
+      "label": "",
+      "tid": "k8jwzz",
+      "img": "thumb-k8jwzz.jpg?v=1792951297087"
+    },
+    {
+      "tag": "",
+      "title": "LINK",
+      "sub": "NEW SIGNAL",
+      "name": "LINK",
+      "url": "https://luvme11.github.io/7/",
+      "c1": "#cfdcf5",
+      "c2": "#4a6aa8",
+      "label": "",
+      "tid": "wh0j2w",
+      "img": "thumb-wh0j2w.jpg?v=1792951299204"
     }
   ]
 }
