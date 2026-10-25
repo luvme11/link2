@@ -1,0 +1,54 @@
+{
+  "PROFILE": {
+    "name": "FLOW",
+    "handle": "@just · i cee your heart",
+    "img": ""
+  },
+  "SITE": {
+    "title": "COLD CASE",
+    "footer": "JUST I CEE YOUR HEART",
+    "caseNo": "CASE No.0419-JUST · I CEE YOUR HEART"
+  },
+  "CHANNELS": [
+    {
+      "tag": "STAY",
+      "title": "COLD CASE",
+      "sub": "BLUE HEART SIGNAL",
+      "name": "LUVINFO",
+      "url": "https://example.com/1",
+      "c1": "#cfdcf5",
+      "c2": "#4a6aa8",
+      "label": "JUST"
+    },
+    {
+      "tag": "CALL",
+      "title": "COLD CASE",
+      "sub": "MIDNIGHT FREQUENCY",
+      "name": "ARCHIVE",
+      "url": "https://example.com/2",
+      "c1": "#d8f0ff",
+      "c2": "#3f93c9",
+      "label": "ARCHIVE"
+    },
+    {
+      "tag": "LOVE",
+      "title": "COLD CASE",
+      "sub": "SOFT PINK STATIC",
+      "name": "FANWORKS",
+      "url": "https://example.com/3",
+      "c1": "#f3dcf5",
+      "c2": "#9a6bc7",
+      "label": "FANWORKS"
+    },
+    {
+      "tag": "NOTE",
+      "title": "COLD CASE",
+      "sub": "PAPER MOON TAPES",
+      "name": "NOTES",
+      "url": "https://example.com/4",
+      "c1": "#d8f2ea",
+      "c2": "#4b9a8e",
+      "label": "NOTES"
+    }
+  ]
+}
