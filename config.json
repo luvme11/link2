@@ -76,6 +76,21 @@
       "label": "",
       "tid": "wh0j2w",
       "img": "thumb-wh0j2w.jpg?v=1792951299204"
+    },
+    {
+      "tag": "NEW",
+      "title": "LINK",
+      "sub": "NEW SIGNAL",
+      "name": "테스트",
+      "url": "",
+      "c1": "#cfdcf5",
+      "c2": "#4a6aa8",
+      "label": "NEW",
+      "lock": {
+        "s": "qUR7JJvVNdr7cI1oKFtRRw==",
+        "i": "YFZ+U0ITu01hddBk",
+        "c": "724Q07TdmPHzBA14hCvD0S9zTgqk1T/A"
+      }
     }
   ]
 }
