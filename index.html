@@ -4,6 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>COLD CASE · LUVLINK</title>
+<link rel="icon" type="image/png" href="favicon.png">
+<link rel="apple-touch-icon" href="favicon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
@@ -207,6 +209,9 @@ body.recording .ctrls .rec .btn{box-shadow:0 0 0 1.5px #e8483f,0 3px 10px rgba(2
 .lkf{display:flex;justify-content:flex-end;gap:8px;padding:12px 16px;border-top:1px solid #d6e2f7;background:#f3f7ff}
 .shake{animation:shk .35s}@keyframes shk{20%,60%{transform:translateX(-6px)}40%,80%{transform:translateX(6px)}}
 .open .lk-ico{display:none}.open.lk .lk-ico{display:block}
+/* 마우스 커서 (물방울, 끝이 클릭 위치) */
+*{cursor:url("cursor.png") 8 0,auto!important}
+input[type=text],input[type=password]{cursor:text!important}
 </style>
 </head>
 <body class="playing">
@@ -531,13 +536,22 @@ function drop(){
  }catch(_){}
 }
 document.addEventListener("click",e=>{if(e.target.closest("button,#pill"))drop()},true);
+/* ===== 파비콘 / 커서 (관리자에서 올린 값 적용) ===== */
+const hot=(w,h,m)=>m==="tl"?[0,0]:m==="c"?[Math.round(w/2),Math.round(h/2)]:[Math.round(w/2),0];
+const curCss=(src,m)=>new Promise(res=>{const im=new Image();im.onload=()=>{const[x,y]=hot(im.naturalWidth,im.naturalHeight,m);res(`url("${src}") ${x} ${y},auto`)};im.onerror=()=>res("auto");im.src=src});
+const setFav=h=>document.querySelectorAll('link[rel~="icon"],link[rel="apple-touch-icon"]').forEach(l=>l.href=h);
+async function applyIcons(){
+ if(SITE.favicon)setFav(SITE.favicon);
+ if(SITE.cursor){const v=await curCss(SITE.cursor,SITE.cursorHot||"tc");let st=$("#curStyle");
+  if(!st){st=document.createElement("style");st.id="curStyle";document.head.appendChild(st)}
+  st.textContent=`*{cursor:${v}!important}input[type=text],input[type=password]{cursor:text!important}`}}
 /* STAY 알약 클릭 → 관리자 팝업 */
 $("#pill").style.cursor="pointer";$("#pill").title="관리자";
 const AK=localStorage,AS=sessionStorage,esc=v=>String(v??"").replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;");
 const gh={owner:AK.cc_owner||"",repo:AK.cc_repo||"",branch:AK.cc_branch||"main",path:AK.cc_path||"config.json",token:AK.cc_token||AS.cc_token||"",remember:!!AK.cc_token};
 if(!gh.owner&&/\.github\.io$/.test(location.hostname)){gh.owner=location.hostname.split(".")[0];gh.repo=location.pathname.split("/")[1]||gh.owner+".github.io"}
-const TABS=[["gh","GitHub 설정"],["pf","프로필"],["st","사이트 문구"],["mu","음악"],["ch","채널 · 링크"]];
-let adm,draft,tab="gh",pend=null,pendCh={};
+const TABS=[["gh","GitHub 설정"],["pf","프로필"],["st","사이트 문구"],["mu","음악"],["ic","아이콘 · 커서"],["ch","채널 · 링크"]];
+let adm,draft,tab="gh",pend=null,pendCh={},pendIc={fav:null,cur:null},curSrc=null,curSize=26;
 function stat(t,err){const f=$(".adm-f");f.classList.toggle("err",!!err);$("#aSt").textContent=t}
 function openAdmin(){
  if(adm){adm.style.display="flex";return}
@@ -550,6 +564,13 @@ function openAdmin(){
  document.addEventListener("keydown",e=>{if(e.key==="Escape"&&adm.style.display!=="none")close()});
  $("#aNav").onclick=e=>{const t=e.target.dataset.t;if(t){tab=t;paint()}};
 $("#aSave").onclick=save;
+$("#aPane").addEventListener("change",async e=>{const w=e.target.dataset.ic;if(!w)return;
+  try{const f=e.target.files&&e.target.files[0];
+   if(w==="fav"&&f){pendIc.fav=await mkFav(f);setFav(pendIc.fav);stat("파비콘을 골랐어요. 저장을 눌러야 반영돼요.")}
+   if(w==="cur"&&f){curSrc=f;pendIc.cur=await mkCur(f,curSize);stat("커서를 골랐어요. 저장을 눌러야 반영돼요.")}
+   if(w==="size"){curSize=+e.target.value;const src=curSrc||await (await fetch(pendIc.cur||draft.SITE.cursor||"cursor.png")).blob();pendIc.cur=await mkCur(src,curSize)}
+   if(w==="hot")draft.SITE.cursorHot=e.target.value;
+   paint()}catch(_){stat("이미지를 읽을 수 없어요.",1)}});
  $("#aPane").addEventListener("change",async e=>{if(!e.target.dataset.cf)return;const f=e.target.files[0];if(!f)return;
   try{const c=draft.CHANNELS[+e.target.closest(".ach").dataset.i];c.tid=c.tid||Math.random().toString(36).slice(2,8);pendCh[c.tid]=await crop(f,720,420);paint();stat("썸네일을 골랐어요. 저장을 눌러야 반영돼요.")}
   catch(_){stat("이미지를 읽을 수 없어요.",1)}});
@@ -566,6 +587,8 @@ $("#aSave").onclick=save;
  P.addEventListener("click",e=>{const a=e.target.dataset.a;if(!a)return;const L=draft.CHANNELS;
   if(a==="test")return test();
   if(a==="pick")return $("#aFile").click();
+  if(a==="icpick")return $("#aPane").querySelector(`[data-ic="${e.target.dataset.w}"]`).click();
+  if(a==="icdef"){if(e.target.dataset.w==="fav"){pendIc.fav=null;draft.SITE.favicon="";setFav("favicon.png")}else{pendIc.cur=null;curSrc=null;draft.SITE.cursor=""}return paint()}
   if(a==="unlock"){const c=L[+e.target.closest(".ach").dataset.i];if(!c.url)return stat("잠금을 풀려면 이동 URL을 입력해 주세요.",1);delete c.lock;c.pw="";return paint()}
   if(a==="cpick")return e.target.closest(".ach").querySelector("[data-cf]").click();
   if(a==="cdel"){const c=L[+e.target.closest(".ach").dataset.i];delete pendCh[c.tid];c.img="";return paint()}
@@ -580,6 +603,9 @@ $("#aSave").onclick=save;
 async function crop(f,w,h){const bm=await createImageBitmap(f),k=Math.max(w/bm.width,h/bm.height),sw=w/k,sh=h/k,c=document.createElement("canvas");c.width=w;c.height=h;
  c.getContext("2d").drawImage(bm,(bm.width-sw)/2,(bm.height-sh)/2,sw,sh,0,0,w,h);return c.toDataURL("image/jpeg",.85)}
 const thumbSrc=c=>pendCh[c.tid]||c.img||"";
+const mkFav=async f=>{const bm=await createImageBitmap(f),c=document.createElement("canvas");c.width=c.height=64;const k=64/Math.max(bm.width,bm.height),w=bm.width*k,h=bm.height*k;c.getContext("2d").drawImage(bm,(64-w)/2,(64-h)/2,w,h);return c.toDataURL("image/png")};
+const mkCur=async(f,m)=>{const bm=await createImageBitmap(f),k=m/Math.max(bm.width,bm.height),w=Math.max(1,Math.round(bm.width*k)),h=Math.max(1,Math.round(bm.height*k)),c=document.createElement("canvas");c.width=w;c.height=h;c.getContext("2d").drawImage(bm,0,0,w,h);return c.toDataURL("image/png")};
+async function curTest(){const t=$("#curTest");if(!t)return;t.style.setProperty("cursor",await curCss(pendIc.cur||draft.SITE.cursor||"cursor.png",draft.SITE.cursorHot||"tc"),"important")}
 function persist(){["owner","repo","branch","path"].forEach(k=>AK["cc_"+k]=gh[k]);
  if(gh.remember){AK.cc_token=gh.token;delete AS.cc_token}else{delete AK.cc_token;AS.cc_token=gh.token}}
 const fld=(l,p,v)=>`<label>${l}</label><input type="text" data-p="${p}" value="${esc(v)}">`;
@@ -600,6 +626,18 @@ function paint(){
  if(tab==="mu")h=`<h3>음악</h3><p class="d">유튜브 링크를 넣으면 레코더의 <b>PLAY</b> 버튼으로 재생돼요. STOP은 정지예요.</p>${fld("유튜브 링크","SITE.music",D.SITE.music||"")}
  <label>음량 <b id="vv">${D.SITE.volume??70}</b></label><input type="range" data-p="SITE.volume" min="0" max="100" value="${D.SITE.volume??70}" style="width:100%;accent-color:#6aa6ff">
  <p class="d" style="margin-top:10px">예) https://www.youtube.com/watch?v=… 또는 https://youtu.be/…<br>음량은 방문자 모두에게 이 값으로 시작해요. 고른 뒤 저장해야 반영돼요.<br>링크를 비우면 음악 없이 릴 애니메이션만 돌아요. 브라우저 자동재생 차단 때문에 방문자가 PLAY를 눌러야 시작돼요.</p>`;
+ if(tab==="ic"){const fs=pendIc.fav||D.SITE.favicon||"favicon.png",cs=pendIc.cur||D.SITE.cursor||"cursor.png",hm=D.SITE.cursorHot||"tc";
+ h=`<h3>아이콘 · 커서</h3><p class="d">브라우저 탭 아이콘(파비콘)과 마우스 커서를 직접 올릴 수 있어요. 투명 배경 PNG를 권장해요. 저장해야 반영돼요.</p>
+ <label>파비콘</label><div class="arow" style="gap:14px"><div class="pvt" style="width:64px;height:64px;background:#e6efff url('${fs}') center/contain no-repeat"></div>
+ <div><input type="file" data-ic="fav" accept="image/*" hidden><button class="abtn" data-a="icpick" data-w="fav">파일 첨부</button> <button class="abtn" data-a="icdef" data-w="fav">기본으로</button>
+ <div class="d" style="margin:6px 0 0">64×64 정사각형으로 맞춰서 올라가요.</div></div></div>
+ <label style="margin-top:20px">마우스 커서</label><div class="arow" style="gap:14px"><div class="pvt" style="width:64px;height:64px;background:#e6efff url('${cs}') center/contain no-repeat;image-rendering:pixelated"></div>
+ <div><input type="file" data-ic="cur" accept="image/*" hidden><button class="abtn" data-a="icpick" data-w="cur">파일 첨부</button> <button class="abtn" data-a="icdef" data-w="cur">기본으로</button></div></div>
+ <div class="ag2"><div><label>크기 (가장 긴 변)</label><select data-ic="size" style="width:100%;padding:9px 12px;border:1px solid #cfdcf5;border-radius:10px;background:#fff;font:13px var(--sans);color:var(--ink)">
+  ${[[20,"작게 (20px)"],[26,"보통 (26px)"],[32,"크게 (32px)"]].map(([v,n])=>`<option value="${v}" ${v===curSize?"selected":""}>${n}</option>`).join("")}</select></div>
+ <div><label>클릭되는 위치</label><select data-ic="hot" style="width:100%;padding:9px 12px;border:1px solid #cfdcf5;border-radius:10px;background:#fff;font:13px var(--sans);color:var(--ink)">
+  ${[["tc","위쪽 가운데 (뾰족한 끝)"],["tl","왼쪽 위 (화살표)"],["c","가운데"]].map(([v,n])=>`<option value="${v}" ${v===hm?"selected":""}>${n}</option>`).join("")}</select></div></div>
+ <div id="curTest" class="pvt" style="width:100%;height:70px;margin-top:12px;display:grid;place-items:center;font-size:11.5px;color:var(--ink-soft)">여기에 마우스를 올려 커서를 확인해 보세요</div>`}
  if(tab==="ch")h=`<h3>채널 · 링크</h3><p class="d">카세트 한 개가 채널 하나예요. 순서를 바꾸고 고친 뒤 꼭 저장을 눌러 주세요.</p>`+D.CHANNELS.map((c,i)=>`<div class="ach" data-i="${i}">
  <div class="arow"><span class="num">${String(i+1).padStart(2,"0")}</span><input type="text" data-k="name" value="${esc(c.name)}" placeholder="링크바 이름">
  <button class="abtn sq" data-a="up">↑</button><button class="abtn sq" data-a="dn">↓</button><button class="abtn sq" data-a="rm">✕</button></div>
@@ -608,7 +646,7 @@ function paint(){
  <div class="ag2" style="margin-top:6px"><div><label>${c.lock?"잠금 중 · 새 비밀번호":"비밀번호 (비우면 잠금 없음)"}</label><input type="password" data-k="pw" autocomplete="new-password" value="${esc(c.pw||"")}" placeholder="${c.lock?"비우면 유지":""}"></div><div style="align-self:end">${c.lock?'<button class="abtn" data-a="unlock">잠금 해제</button>':""}</div></div>
  <div class="ag3"><div><label>알약 글자</label><input type="text" data-k="tag" value="${esc(c.tag)}"></div><div><label>라벨 글자</label><input type="text" data-k="label" value="${esc(c.label)}"></div><div><label>이동 URL</label><input type="text" data-k="url" value="${esc(c.url)}" placeholder="${c.lock?"잠겨 있어요 · 바꿀 때만 입력":""}"></div></div>
  <div class="ag2"><div><label>밝은 색</label><input type="color" data-k="c1" value="${esc(c.c1)}"></div><div><label>진한 색</label><input type="color" data-k="c2" value="${esc(c.c2)}"></div></div></div>`).join("")+`<button class="abtn" data-a="add">+ 채널 추가</button>`;
- $("#aPane").innerHTML=h;
+ $("#aPane").innerHTML=h;if(tab==="ic")curTest();
 }
 /* GitHub API */
 const url=(p=gh.path)=>{if(!gh.owner||!gh.repo||!gh.token)throw Error("계정 · 저장소 · 토큰을 입력해 주세요.");
@@ -629,6 +667,8 @@ async function save(){try{if(!gh.token){tab="gh";paint()}stat("저장 중…");
  for(const c of draft.CHANNELS){if(c.tid&&pendCh[c.tid]){const ip=gh.path.replace(/[^/]*$/,"")+"thumb-"+c.tid+".jpg",isha=await getSha(ip),ib={message:"admin: thumbnail",branch:gh.branch,content:pendCh[c.tid].split(",")[1]};if(isha)ib.sha=isha;
   const ir=await fetch(url(ip),{method:"PUT",headers:hd(),body:JSON.stringify(ib)});if(!ir.ok)throw Error("썸네일 업로드 실패 ("+ir.status+")");
   c.img="thumb-"+c.tid+".jpg?v="+Date.now();delete pendCh[c.tid]}}
+ for(const[k,fn,fl]of[["fav","site-favicon.png","favicon"],["cur","site-cursor.png","cursor"]]){if(pendIc[k]){const ip=gh.path.replace(/[^/]*$/,"")+fn,isha=await getSha(ip),ib={message:"admin: "+fn,branch:gh.branch,content:pendIc[k].split(",")[1]};if(isha)ib.sha=isha;
+  const ir=await fetch(url(ip),{method:"PUT",headers:hd(),body:JSON.stringify(ib)});if(!ir.ok)throw Error(fn+" 업로드 실패 ("+ir.status+")");draft.SITE[fl]=fn+"?v="+Date.now();pendIc[k]=null}}
  const sha=await getSha(gh.path);
  const body={message:"admin: update "+gh.path,branch:gh.branch,content:btoa(unescape(encodeURIComponent(JSON.stringify(draft,null,2))))};if(sha)body.sha=sha;
  let r=await fetch(url(),{method:"PUT",headers:hd(),body:JSON.stringify(body)});
@@ -639,6 +679,7 @@ $("#pill").onclick=openAdmin;
 initYT();
 setPlay(!vid(SITE.music));
 go(0, false);
+applyIcons();
 }
 boot();
 </script>
