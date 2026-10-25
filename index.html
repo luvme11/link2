@@ -505,12 +505,13 @@ function askPw(ch){return new Promise(res=>{
  const ok=async()=>{if(!inp.value)return;try{done(await unlockUrl(inp.value,ch.lock))}catch(_){er.textContent="비밀번호가 맞지 않아요.";box.classList.remove("shake");void box.offsetWidth;box.classList.add("shake");inp.select()}};
  b.querySelector(".ok").onclick=ok;inp.onkeydown=e=>{if(e.key==="Enter")ok()};inp.focus()})}
 /* ===== 유튜브 음악 ===== */
+const volOf=()=>Math.max(0,Math.min(100,+(SITE.volume??70)));
 let yt=null,ytReady=false;
 const vid=u=>{const m=String(u||"").match(/(?:youtu\.be\/|[?&]v=|embed\/|shorts\/|live\/)([\w-]{11})/);return m?m[1]:""};
 function initYT(){const id=vid(SITE.music);if(!id)return;
  const d=document.createElement("div");d.style.cssText="position:fixed;left:-9999px;top:0;width:200px;height:200px;pointer-events:none";d.innerHTML='<div id="ytp"></div>';document.body.appendChild(d);
  window.onYouTubeIframeAPIReady=()=>{yt=new YT.Player("ytp",{width:200,height:200,videoId:id,playerVars:{playsinline:1,controls:0,loop:1,playlist:id},
-  events:{onReady:()=>{ytReady=true},onStateChange:e=>setPlay(e.data===1||e.data===3)}})};
+  events:{onReady:()=>{ytReady=true;yt.setVolume(volOf())},onStateChange:e=>setPlay(e.data===1||e.data===3)}})};
  const s=document.createElement("script");s.src="https://www.youtube.com/iframe_api";document.head.appendChild(s)}
 /* STAY 알약 클릭 → 관리자 팝업 */
 $("#pill").style.cursor="pointer";$("#pill").title="관리자";
@@ -542,7 +543,7 @@ $("#aSave").onclick=save;
  const P=$("#aPane");
  P.addEventListener("input",e=>{const el=e.target;
   if(el.dataset.g){gh[el.dataset.g]=el.type==="checkbox"?el.checked:el.value.trim();persist()}
-  else if(el.dataset.p){const[a,b]=el.dataset.p.split(".");draft[a][b]=el.value}
+  else if(el.dataset.p){const[a,b]=el.dataset.p.split(".");draft[a][b]=el.value;if(el.dataset.p==="SITE.volume"){$("#vv").textContent=el.value;if(yt&&ytReady)yt.setVolume(+el.value)}}
   else if(el.dataset.k){draft.CHANNELS[+el.closest(".ach").dataset.i][el.dataset.k]=el.value}});
  P.addEventListener("click",e=>{const a=e.target.dataset.a;if(!a)return;const L=draft.CHANNELS;
   if(a==="test")return test();
@@ -578,7 +579,8 @@ function paint(){
  <div class="d" style="margin:6px 0 0">정사각형으로 잘라 400px로 줄여서 저장 시 함께 올라가요.</div></div></div>`;
  if(tab==="st")h=`<h3>사이트 문구</h3><p class="d">브라우저 탭 제목, 레코더 위 탭 이름, 레코더 하단 문구, 맨 아래 CASE 문구예요.</p>${fld("브라우저 탭 제목","SITE.title",D.SITE.title)}${fld("레코더 탭 이름 (비우면 숨김)","SITE.tab2",D.SITE.tab2??"00 \u00a0VOICE RECORDER")}${fld("푸터 문구","SITE.footer",D.SITE.footer)}${fld("CASE 문구","SITE.caseNo",D.SITE.caseNo)}`;
  if(tab==="mu")h=`<h3>음악</h3><p class="d">유튜브 링크를 넣으면 레코더의 <b>PLAY</b> 버튼으로 재생돼요. STOP은 정지예요.</p>${fld("유튜브 링크","SITE.music",D.SITE.music||"")}
- <p class="d" style="margin-top:10px">예) https://www.youtube.com/watch?v=… 또는 https://youtu.be/…<br>링크를 비우면 음악 없이 릴 애니메이션만 돌아요. 브라우저 자동재생 차단 때문에 방문자가 PLAY를 눌러야 시작돼요.</p>`;
+ <label>음량 <b id="vv">${D.SITE.volume??70}</b></label><input type="range" data-p="SITE.volume" min="0" max="100" value="${D.SITE.volume??70}" style="width:100%;accent-color:#6aa6ff">
+ <p class="d" style="margin-top:10px">예) https://www.youtube.com/watch?v=… 또는 https://youtu.be/…<br>음량은 방문자 모두에게 이 값으로 시작해요. 고른 뒤 저장해야 반영돼요.<br>링크를 비우면 음악 없이 릴 애니메이션만 돌아요. 브라우저 자동재생 차단 때문에 방문자가 PLAY를 눌러야 시작돼요.</p>`;
  if(tab==="ch")h=`<h3>채널 · 링크</h3><p class="d">카세트 한 개가 채널 하나예요. 순서를 바꾸고 고친 뒤 꼭 저장을 눌러 주세요.</p>`+D.CHANNELS.map((c,i)=>`<div class="ach" data-i="${i}">
  <div class="arow"><span class="num">${String(i+1).padStart(2,"0")}</span><input type="text" data-k="name" value="${esc(c.name)}" placeholder="링크바 이름">
  <button class="abtn sq" data-a="up">↑</button><button class="abtn sq" data-a="dn">↓</button><button class="abtn sq" data-a="rm">✕</button></div>
@@ -593,7 +595,7 @@ function paint(){
 const url=(p=gh.path)=>{if(!gh.owner||!gh.repo||!gh.token)throw Error("계정 · 저장소 · 토큰을 입력해 주세요.");
  return `https://api.github.com/repos/${gh.owner}/${gh.repo}/contents/${p.split("/").map(encodeURIComponent).join("/")}`};
 const hd=()=>({Authorization:"Bearer "+gh.token,Accept:"application/vnd.github+json"});
-async function getSha(p){const r=await fetch(url(p)+"?ref="+encodeURIComponent(gh.branch),{headers:hd()});
+async function getSha(p){const r=await fetch(url(p)+"?ref="+encodeURIComponent(gh.branch)+"&_="+Date.now(),{headers:hd(),cache:"no-store"});
  if(r.status===404)return null;if(r.status===401)throw Error("토큰이 올바르지 않아요.");if(!r.ok)throw Error("GitHub 오류 "+r.status);return(await r.json()).sha}
 async function test(){try{stat("확인 중…");const sha=await getSha(gh.path);stat(sha?"연결됐어요. 설정 파일을 찾았어요.":"연결됐어요. 저장하면 설정 파일이 새로 만들어져요.")}catch(e){stat(e.message,1)}}
 async function save(){try{if(!gh.token){tab="gh";paint()}stat("저장 중…");
@@ -610,7 +612,8 @@ async function save(){try{if(!gh.token){tab="gh";paint()}stat("저장 중…");
   c.img="thumb-"+c.tid+".jpg?v="+Date.now();delete pendCh[c.tid]}}
  const sha=await getSha(gh.path);
  const body={message:"admin: update "+gh.path,branch:gh.branch,content:btoa(unescape(encodeURIComponent(JSON.stringify(draft,null,2))))};if(sha)body.sha=sha;
- const r=await fetch(url(),{method:"PUT",headers:hd(),body:JSON.stringify(body)});
+ let r=await fetch(url(),{method:"PUT",headers:hd(),body:JSON.stringify(body)});
+ if(r.status===409||r.status===422){const s2=await getSha(gh.path);if(s2)body.sha=s2;else delete body.sha;r=await fetch(url(),{method:"PUT",headers:hd(),body:JSON.stringify(body)})}
  if(!r.ok){const j=await r.json().catch(()=>({}));throw Error("저장 실패 ("+r.status+") "+(j.message||""))}
  stat("저장했어요. 사이트 반영까지 1~2분 걸릴 수 있어요.")}catch(e){stat(e.message,1)}}
 $("#pill").onclick=openAdmin;
