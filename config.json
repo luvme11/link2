@@ -5,10 +5,11 @@
     "img": "profile.jpg?v=1792950031261"
   },
   "SITE": {
-    "title": "COLD CASE",
-    "footer": "JUST I CEE YOUR HEART",
-    "caseNo": "CASE No.0419-JUST · I CEE YOUR HEART",
-    "tab1": "link"
+    "title": "LINK",
+    "footer": "",
+    "caseNo": "",
+    "tab1": "link",
+    "tab2": ""
   },
   "CHANNELS": [
     {
