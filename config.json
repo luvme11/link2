@@ -1,13 +1,14 @@
 {
   "PROFILE": {
-    "name": "FLOW",
-    "handle": "@just · i cee your heart",
-    "img": ""
+    "name": "ミ",
+    "handle": "@me",
+    "img": "profile.jpg?v=1792950031261"
   },
   "SITE": {
     "title": "COLD CASE",
     "footer": "JUST I CEE YOUR HEART",
-    "caseNo": "CASE No.0419-JUST · I CEE YOUR HEART"
+    "caseNo": "CASE No.0419-JUST · I CEE YOUR HEART",
+    "tab1": "link"
   },
   "CHANNELS": [
     {
