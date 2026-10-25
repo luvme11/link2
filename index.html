@@ -239,7 +239,7 @@ input[type=text],input[type=password]{cursor:text!important}
   <section class="wrap recorder">
     <div class="tab" id="tab2">00 &nbsp;VOICE RECORDER</div>
     <div class="card">
-      <div class="model"><span>LUVLINK - CR-02</span><span class="dots"></span></div>
+      <div class="model"><span id="model">LUVLINK - CR-02</span><span class="dots"></span></div>
 
       <div class="tape-view">
         <div class="tape-bg" id="tape"><div class="tape-photo" id="tapeImg"></div>
@@ -378,6 +378,7 @@ $("#pname").textContent = PROFILE.name;
 $("#phandle").textContent = PROFILE.handle;
 if (PROFILE.img) $("#avatar").style.backgroundImage = `url("${PROFILE.img}")`;
 [["#tab1",SITE.tab1,"00 EVIDENCE"],["#tab2",SITE.tab2,"00 \u00a0VOICE RECORDER"]].forEach(([q,v,d])=>{const t=v??d;$(q).textContent=t;$(q).style.display=t?"":"none"});
+$("#model").textContent = SITE.model ?? "LUVLINK - CR-02";
 $("#footTxt").textContent = SITE.footer;
 $("#caseTxt").textContent = SITE.caseNo;
 document.title = SITE.title + " · LUVLINK";
@@ -429,7 +430,7 @@ function go(i, anim=true){
   $("#tape").classList.toggle("photo", !!ch.img);
   $("#tapeImg").style.backgroundImage = ch.img ? `url("${ch.img}")` : "";
   $("#open").classList.toggle("lk", !!ch.lock);
-  $("#pill").textContent = ch.tag;
+  $("#pill").textContent = (ch.tag||"").trim() || "CH " + pad(cur);
   $("#lbT").textContent = `CHANNEL ${pad(cur)} · ${ch.tag}`;
   $("#lbN").textContent = ch.name;
   $("#lbThumb").innerHTML = (ch.img?`<i class="m-photo" style="background-image:url('${ch.img}')"></i>`:"") + miniSVG;
@@ -622,6 +623,7 @@ function paint(){
  <div><input type="file" id="aFile" data-f="1" accept="image/*" hidden><button class="abtn" data-a="pick">이미지 첨부</button> <button class="abtn" data-a="imgdel">제거</button>
  <div class="d" style="margin:6px 0 0">정사각형으로 잘라 400px로 줄여서 저장 시 함께 올라가요.</div></div></div>`;
  if(tab==="st")h=`<h3>사이트 문구</h3><p class="d">브라우저 탭 제목, 레코더 위 탭 이름, 레코더 하단 문구, 맨 아래 CASE 문구예요.</p>${fld("브라우저 탭 제목","SITE.title",D.SITE.title)}${fld("레코더 탭 이름 (비우면 숨김)","SITE.tab2",D.SITE.tab2??"00 \u00a0VOICE RECORDER")}
+${fld("레코더 모델명 (카세트 화면 위 작은 글씨)","SITE.model",D.SITE.model??"LUVLINK - CR-02")}
  <label class="chk"><input type="checkbox" data-p="SITE.clickSound" ${D.SITE.clickSound===false?"":"checked"}> 버튼 클릭 사운드 (물방울)</label>${fld("푸터 문구","SITE.footer",D.SITE.footer)}${fld("CASE 문구","SITE.caseNo",D.SITE.caseNo)}`;
  if(tab==="mu")h=`<h3>음악</h3><p class="d">유튜브 링크를 넣으면 레코더의 <b>PLAY</b> 버튼으로 재생돼요. STOP은 정지예요.</p>${fld("유튜브 링크","SITE.music",D.SITE.music||"")}
  <label>음량 <b id="vv">${D.SITE.volume??70}</b></label><input type="range" data-p="SITE.volume" min="0" max="100" value="${D.SITE.volume??70}" style="width:100%;accent-color:#6aa6ff">
